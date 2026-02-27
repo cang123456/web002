@@ -71,7 +71,7 @@ import Aside from "@/components/Aside.vue";
           ],
           age: [
             {required: true, message: '请输入年龄', trigger: 'blur'},
-            {min: 1, max: 3, message: '长度在 3 到 8 个字符', trigger: 'blur'},
+            {min: 1, max: 3, message: '长度在 1 到 3 个字符', trigger: 'blur'},
             {pattern:/^([1-9][0-9]*){1,3}$/,message: '年龄必须为正整数字', trigger: 'blur'},
             {validator:checkAge,trigger: 'blur'}
           ],
@@ -83,11 +83,35 @@ import Aside from "@/components/Aside.vue";
       }
     },
     methods:{
-      del(){
-
+      del(id){
+        console.log(id)
+        this.$axios.get(this.$httpUrl+'/user/delete?id='+id).then(res=>res.data).then(res=>{
+          console.log(res)
+          if(res.code === 200){
+            this.$message({
+              message:'删除成功',
+              type:'success'
+            })
+            this.loadPost()
+          } else {
+            this.$message({
+              message:'删除失败',
+              type: 'warning'
+            })
+          }
+        })
       },
       mod(row){
         console.log(row)
+        this.form.id = row.id
+        this.form.no = row.no
+        this.form.name = row.name
+        this.form.password = row.password
+        this.form.age = row.age+''
+        this.form.sex = row.sex + ''
+        this.form.phone = row.phone
+        this.form.roleId = row.roleId
+        this.centerDialogVisible = true
       },
       resetForm() {
         this.$refs.form.resetFields();
@@ -136,19 +160,45 @@ import Aside from "@/components/Aside.vue";
           this.resetForm();
         })
       },
+      doSave(){
+        this.$axios.post(this.$httpUrl+'/user/save',this.form).then(res=>res.data).then(res=>{
+          console.log(res)
+          if(res.code === 200){
+            this.$message({
+              message:'操作成功',
+              type:'success'
+            })
+            this.centerDialogVisible = false
+            this.loadPost()
+            this.resetForm()
+          } else {
+            this.$message({
+              message:'操作失败',
+              type: 'warning'
+            })
+          }
+        })
+      },
+      doMod(){
+        this.$axios.post(this.$httpUrl+'/user/update',this.form).then(res=>res.data).then(res=>{
+          console.log(res)
+          if(res.code === 200){
+            this.tableData = res.data
+            this.total = res.total
+            alert("添加成功")
+          } else {
+            alert("添加失败")
+          }
+        })
+      },
       sava(){
         this.$refs.form.validate((valid) => {
-          if (valid) {
-            this.$axios.post(this.$httpUrl+'/user/save',this.form).then(res=>res.data).then(res=>{
-              console.log(res)
-              if(res.code === 200){
-                this.tableData = res.data
-                this.total = res.total
-                alert("添加成功")
-              } else {
-                alert("添加失败")
-              }
-            })
+          if (valid) {//表单校验是否通过
+            if(this.form.id){
+              this.doMod();
+            }else {
+              this.doSave();
+            }
           } else {
             alert("添加失败，请输入正确的格式！")
             return false;
@@ -219,7 +269,13 @@ import Aside from "@/components/Aside.vue";
         <el-table-column align="center" fixed="right" prop="operate" label="操作" min-width="180" >
           <template slot-scope="scope">
           <el-button size="small"  type="primary" @click="mod(scope.row)">编辑</el-button>
-          <el-button size="small"  type="danger" @click="del">删除</el-button>
+            <el-popconfirm
+                title="确定删除吗？"
+                @confirm="del(scope.row.id)"
+                style="margin-left: 10px;"
+            >
+              <el-button slot="reference" size="small"  type="danger">删除</el-button>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>

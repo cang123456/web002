@@ -42,6 +42,11 @@ public class UserController {
         return  userService.save(user)?Result.suc():Result.fail();
     }
     //修改
+    @PostMapping("/update")
+    public Result update(@RequestBody User user) {
+        return  userService.updateById(user)?Result.suc():Result.fail();
+    }
+    //修改
     @PostMapping("/mod")
     public boolean mod(@RequestBody User user) {
         return  userService.updateById(user);
@@ -53,8 +58,8 @@ public class UserController {
     }
     //删除
     @GetMapping("/delete")
-    public boolean delete(Integer id) {
-        return  userService.removeById(id);
+    public Result delete(Integer id) {
+        return  userService.removeById(id)?Result.suc():Result.fail();
     }
     //查询 （模糊，匹配）
     @PostMapping("/listP")
@@ -103,8 +108,8 @@ public class UserController {
 
     @PostMapping("/listPageC")
     public List<User> listPageC(@RequestBody QueryQageParam query) {
-        System.out.println("num==="+query.getPageNum());
-        System.out.println("size==="+query.getPageSize());
+//        System.out.println("num==="+query.getPageNum());
+//        System.out.println("size==="+query.getPageSize());
         HashMap param = query.getParam();
         String name = param.get("name").toString();
 
